@@ -20,11 +20,12 @@ app.get('/', async (req, res) => {
     try {
         
         const result = await pool.query('SELECT NOW()');
-        res.send(`
-            <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
-                <h1 style="color: #2e7d32;">se conecto </h1>
-            </div>
-        `);
+        // aca vamos a usar res.render para la vista index.pug
+        // y tambien le pasamos las variables title y time
+        res.render('index', { 
+            title: 'Inicio - Proyect',
+            time: result.rows[0].now 
+        });
     } catch (err) {
         console.error(err);
         res.status(500).send('Error al realizar la consulta en la base de datos.');
