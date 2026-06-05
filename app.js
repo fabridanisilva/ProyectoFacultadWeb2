@@ -2,8 +2,9 @@
 const express = require('express');
 const path = require('path');
 const pool = require('./db/database'); 
-const bcrypt = require('bcrypt');
-const session = require('express-session');
+const bcrypt = require('bcrypt'); // esto es para encriptar
+const session = require('express-session'); // para que se mantenga la sesion
+const multer = require('multer'); //para subir y guardar fotos
 require('dotenv').config();
 
 const app = express();
@@ -152,4 +153,55 @@ app.get('/publicaciones/nueva', (req, res) => {
     
     // Si está conectado, le mostramos el formulario
     res.render('create-post', { title: 'Nueva Publicación - ProyectoWeb' });
+});
+
+// esto es la configuración de multer para saber donde se va a guardar la imagen y copmo
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        // queremos que se guarde en la carpeta public/uploads
+        cb(null, path.join(__dirname, 'public/uploads'));
+    },
+    filename: function (req, file, cb) {
+        
+        // esto es clave porque evita que si dos usuarios suben un archivo llamado foto.jpg se sobreescriban
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + '-' + file.originalname);
+    }
+});
+
+const upload = multer({ storage: storage });
+//esto lo que hace es subir una foto que se va a guardar en la carpeta uploads, 
+// entonces de ahi tomamos el url y eso lo guardamos en la base de datos. 
+// Si subimos la foto directamente en la bd seria muy pesado y mala practica
+app.post('/publicaciones/nueva', upload.single('image'), async (req, res) => {
+    // Verificamos por seguridad que el usuario tenga sesión
+    if (!req.session.user) {
+        return res.status(403).send('No autorizado');
+    }
+
+    const { title, description } = req.body;
+    
+    // Multer nos deja la información del archivo guardado en req.file
+    if (!req.file) {
+        return res.status(400).send('<h1>Error: Debes subir una imagen.</h1><a href="/publicaciones/nueva">Volver</a>');
+    }
+
+    // armamos la ruta relativa que vamos a guardar en postgreSQL
+    const imageUrl = '/uploads/' + req.file.filename;
+    const username = req.session.user.username;
+
+    try {
+        
+        await pool.query(
+            'INSERT INTO posts (username, title, description, image_url) VALUES ($1, $2, $3, $4)',
+            [username, title, description, imageUrl]
+        );
+
+        console.log(`✅ Publicación creada por ${username}: ${title}`);
+        res.redirect('/'); 
+        
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error interno al guardar la publicación.');
+    }
 });
