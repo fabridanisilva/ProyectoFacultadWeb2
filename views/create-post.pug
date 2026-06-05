@@ -1,0 +1,28 @@
+extends layout
+
+block content
+    div.row.justify-content-center
+        div.col-md-8
+            div.card.shadow-sm
+                div.card-header.bg-success.text-white
+                    h4.mb-0 Crear Nueva Publicación
+                div.card-body
+                    //- El atributo enctype es OBLIGATORIO para enviar archivos
+                    form(action="/publicaciones/nueva", method="POST", enctype="multipart/form-data")
+            
+                        div.mb-3
+                            label.form-label(for="title") Título
+                            input#title.form-control(type="text", name="title", placeholder="Ej: Atardecer en la montaña", required)
+            
+                        div.mb-3
+                            label.form-label(for="description") Descripción
+                            textarea#description.form-control(name="description", rows="3", placeholder="Opcional...")
+            
+                        div.mb-3
+                            label.form-label(for="image") Seleccionar Imagen
+                            //- accept="image/*" fuerza al selector de archivos a mostrar solo imágenes
+                            input#image.form-control(type="file", name="image", accept="image/*", required)
+            
+                        div.d-grid.gap-2.d-md-flex.justify-content-md-end
+                            a.btn.btn-outline-secondary.me-md-2(href="/") Cancelar
+                            button.btn.btn-success(type="submit") Subir Publicación

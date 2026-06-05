@@ -141,3 +141,15 @@ app.get('/logout', (req, res) => {
         res.redirect('/');
     });
 });
+
+
+// esto es para mostrar formulario para crear publicación 
+app.get('/publicaciones/nueva', (req, res) => {
+    // si no hay usuario en sesión, le bloqueamos el paso
+    if (!req.session.user) {
+        return res.status(403).send('<h1>Acceso denegado</h1><p>Debes iniciar sesión para crear una publicación.</p><a href="/login">Ir a Login</a>');
+    }
+    
+    // Si está conectado, le mostramos el formulario
+    res.render('create-post', { title: 'Nueva Publicación - ProyectoWeb' });
+});

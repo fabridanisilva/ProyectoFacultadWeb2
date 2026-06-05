@@ -10,7 +10,7 @@ html(lang="es")
     //- este es el nav o barra de navegacion
     nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
         div.container
-            a.navbar-brand(href="/") ProyectoWeb
+            a.navbar-brand(href="/") Proyect
             button.navbar-toggler(type="button", data-bs-toggle="collapse", data-bs-target="#navbarNav")
                 span.navbar-toggler-icon
             div.collapse.navbar-collapse#navbarNav
@@ -19,6 +19,8 @@ html(lang="es")
                         a.nav-link(href="/") Inicio
                     //- si hay un usuario conectado, mostramos su nombre y botón de salir
                     if usuarioActual
+                        li.nav-item
+                            a.nav-link(href="/publicaciones/nueva") Crear Publicación
                         li.nav-item
                         span.nav-link.text-warning ¡Hola, #{usuarioActual.username}!
                         li.nav-item
