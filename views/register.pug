@@ -1,0 +1,25 @@
+extends layout
+
+block content
+    div.row.justify-content-center
+        div.col-md-6
+            div.card.shadow-sm
+                div.card-header.bg-dark.text-white
+                    h4.mb-0 Registro de Usuario
+                div.card-body
+                //- El formulario enviará los datos por POST a la ruta /registro
+                form(action="/registro", method="POST")
+                    div.mb-3
+                        label.form-label(for="username") Nombre de Usuario
+                        input#username.form-control(type="text", name="username", required)
+                    div.mb-3
+                        label.form-label(for="email") Correo Electrónico
+                        input#email.form-control(type="email", name="email", required)
+                    div.mb-3
+                        label.form-label(for="password") Contraseña
+                        input#password.form-control(type="password", name="password", required)
+                    div.mb-3
+                        label.form-label(for="password2") Vuelva a ingresar la contraseña
+                        input#password2.form-control(type="password", name="password2", required)
+                    div.d-grid
+                        button.btn.btn-success(type="submit") Crear Cuenta
