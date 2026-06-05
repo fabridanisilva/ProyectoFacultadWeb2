@@ -1,8 +1,26 @@
 extends layout
 
 block content
-    div.row.justify-content-center
-        div.col-md-8.text-center
-            h1.display-4.text-success Proyect
-            p.lead Bienvenido a la plataforma de imágenes de Proyect.
-            
+    div.row.mb-4
+        div.col
+            h2.text-center  Últimas Publicaciones
+
+    //- vemos si hay publicaciones para mostrar
+    if posts.length > 0
+        div.row.row-cols-1.row-cols-md-3.g-4
+        
+        each post in posts
+            div.col
+                div.card.h-100.shadow-sm
+                    //- Inyectamos la URL de la imagen en el atributo src
+                    img.card-img-top(src=post.image_url, alt=post.title, style="object-fit: cover; height: 250px;")
+                    div.card-body
+                        h5.card-title= post.title
+                        if post.description
+                            p.card-text.text-muted= post.description
+                    div.card-footer.bg-white
+                        small.text-muted Subido por: 
+                            strong= post.username
+    else
+        div.alert.alert-info.text-center
+            p No hay publicaciones todavía. ¡Sé el primero en subir una!

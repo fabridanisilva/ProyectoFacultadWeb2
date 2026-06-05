@@ -35,13 +35,14 @@ app.use((req, res, next) => {
 // esto es una prueba para ver si funciona la conexion a bd
 app.get('/', async (req, res) => {
     try {
-        
-        const result = await pool.query('SELECT NOW()');
-        // aca vamos a usar res.render para la vista index.pug
-        // y tambien le pasamos las variables title y time
+        // aca buscamos todas las publicaciones ordenadas por fecha para mostrar lo nuevo primero
+        const result = await pool.query('SELECT * FROM posts ORDER BY created_at DESC');
+        const posts = result.rows;
+
+        // Le pasamos el arreglo de 'posts' a la vista
         res.render('index', { 
             title: 'Inicio - Proyect',
-            time: result.rows[0].now 
+            posts: posts 
         });
     } catch (err) {
         console.error(err);
@@ -152,7 +153,7 @@ app.get('/publicaciones/nueva', (req, res) => {
     }
     
     // Si está conectado, le mostramos el formulario
-    res.render('create-post', { title: 'Nueva Publicación - ProyectoWeb' });
+    res.render('create-post', { title: 'Nueva Publicación - Proyect' });
 });
 
 // esto es la configuración de multer para saber donde se va a guardar la imagen y copmo
