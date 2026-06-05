@@ -10,17 +10,25 @@ html(lang="es")
     //- este es el nav o barra de navegacion
     nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
         div.container
-            a.navbar-brand(href="/") Proyect
+            a.navbar-brand(href="/") ProyectoWeb
             button.navbar-toggler(type="button", data-bs-toggle="collapse", data-bs-target="#navbarNav")
                 span.navbar-toggler-icon
             div.collapse.navbar-collapse#navbarNav
                 ul.navbar-nav.ms-auto
                     li.nav-item
                         a.nav-link(href="/") Inicio
-                    li.nav-item
+                    //- si hay un usuario conectado, mostramos su nombre y botón de salir
+                    if usuarioActual
+                        li.nav-item
+                        span.nav-link.text-warning ¡Hola, #{usuarioActual.username}!
+                        li.nav-item
+                            a.nav-link(href="/logout") Cerrar Sesión
+                    //- Si no hay usuario conectado, mostramos registro y login
+                    else
+                        li.nav-item
                         a.nav-link(href="/registro") Registrarse
-                    li.nav-item
-                        a.nav-link(href="#") Iniciar Sesión
+                        li.nav-item
+                            a.nav-link(href="/login") Iniciar Sesión
 
     //- en este contenedor se va a ver las publicaciones
     div.container.mt-5
