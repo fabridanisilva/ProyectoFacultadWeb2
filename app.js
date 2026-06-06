@@ -248,10 +248,15 @@ app.get('/publicaciones/:id', async (req, res) => {
         // buscamos lo comentarios de esa publicacion
         const commentsResult = await pool.query('SELECT * FROM comments WHERE post_id = $1 ORDER BY created_at DESC', [postId]);
 
+        // calculamos el promedio de la valoración
+        const ratingResult = await pool.query('SELECT ROUND(AVG(score), 1) as promedio FROM ratings WHERE post_id = $1', [postId]);
+        const promedio = ratingResult.rows[0].promedio || 0;
+
         res.render('post-detail', {
             title: postResult.rows[0].title,
             post: postResult.rows[0],
-            comments: commentsResult.rows
+            comments: commentsResult.rows,
+            promedio: promedio
         });
 
     } catch (err) {
@@ -283,5 +288,31 @@ app.post('/publicaciones/:id/comentar', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send('Error al guardar el comentario.');
+    }
+});
+
+// procesamos la valoración con las estrellitas
+app.post('/publicaciones/:id/valorar', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(403).send('Debes iniciar sesión para valorar.');
+    }
+
+    const postId = req.params.id;
+    const { score } = req.body; // Va a venir un número del 1 al 5
+    const username = req.session.user.username;
+
+    try {
+        // actualiza si ya había votado antes
+        await pool.query(`
+            INSERT INTO ratings (post_id, username, score) 
+            VALUES ($1, $2, $3)
+            ON CONFLICT (post_id, username) 
+            DO UPDATE SET score = EXCLUDED.score
+        `, [postId, username, score]);
+
+        res.redirect(`/publicaciones/${postId}`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error al guardar la valoración.');
     }
 });
