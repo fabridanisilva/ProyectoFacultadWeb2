@@ -206,3 +206,29 @@ app.post('/publicaciones/nueva', upload.single('image'), async (req, res) => {
         res.status(500).send('Error interno al guardar la publicación.');
     }
 });
+
+// ruta para buscar publicaciones
+// cuando escribamos y demos click en buscar el formulario enviará los datos por método GET a la ruta /buscar
+app.get('/buscar', async (req, res) => {
+    // capturamos lo que el usuario escribió en el input
+    const terminoBusqueda = req.query.q;
+
+    try {
+        
+        // hacemos la consulta a la base de datos
+        const result = await pool.query(
+            'SELECT * FROM posts WHERE title ILIKE $1 OR description ILIKE $1 ORDER BY created_at DESC',
+            [`%${terminoBusqueda}%`]
+        );
+
+        
+        res.render('index', { 
+            title: `Resultados para "${terminoBusqueda}"`,
+            posts: result.rows
+        });
+        
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error al buscar las publicaciones.');
+    }
+});

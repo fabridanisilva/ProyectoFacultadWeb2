@@ -14,6 +14,10 @@ html(lang="es")
             button.navbar-toggler(type="button", data-bs-toggle="collapse", data-bs-target="#navbarNav")
                 span.navbar-toggler-icon
             div.collapse.navbar-collapse#navbarNav
+                //- Nuevo formulario de búsqueda
+                form.d-flex.mx-auto.my-2.my-lg-0(action="/buscar", method="GET")
+                    input.form-control.me-2(type="search", name="q", placeholder="Buscar publicaciones...", required)
+                    button.btn.btn-outline-light(type="submit") Buscar
                 ul.navbar-nav.ms-auto
                     li.nav-item
                         a.nav-link(href="/") Inicio
