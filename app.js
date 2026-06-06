@@ -232,3 +232,56 @@ app.get('/buscar', async (req, res) => {
         res.status(500).send('Error al buscar las publicaciones.');
     }
 });
+
+// aca vamos a mostrar el detalle de una publicación y sus comentarios
+app.get('/publicaciones/:id', async (req, res) => {
+    const postId = req.params.id;
+
+    try {
+        // buscamos la publicacion
+        const postResult = await pool.query('SELECT * FROM posts WHERE id = $1', [postId]);
+        
+        if (postResult.rows.length === 0) {
+            return res.status(404).send('Publicación no encontrada');
+        }
+
+        // buscamos lo comentarios de esa publicacion
+        const commentsResult = await pool.query('SELECT * FROM comments WHERE post_id = $1 ORDER BY created_at DESC', [postId]);
+
+        res.render('post-detail', {
+            title: postResult.rows[0].title,
+            post: postResult.rows[0],
+            comments: commentsResult.rows
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error al cargar la publicación.');
+    }
+});
+
+// aca agregamos un nuevo comentario
+app.post('/publicaciones/:id/comentar', async (req, res) => {
+    // Verificamos que esté logueado
+    if (!req.session.user) {
+        return res.status(403).send('Debes iniciar sesión para comentar.');
+    }
+
+    const postId = req.params.id;
+    const { content } = req.body;
+    const username = req.session.user.username;
+
+    try {
+        // guardamos el comentario en la base de datos
+        await pool.query(
+            'INSERT INTO comments (post_id, username, content) VALUES ($1, $2, $3)',
+            [postId, username, content]
+        );
+
+        // recargamos la misma página para ver el comentario nuevo
+        res.redirect(`/publicaciones/${postId}`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error al guardar el comentario.');
+    }
+});

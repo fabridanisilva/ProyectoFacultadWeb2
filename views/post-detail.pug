@@ -1,0 +1,44 @@
+extends layout
+
+block content
+    div.row.justify-content-center
+        //- en la parte izquierda va a estar la publicación
+        div.col-md-7.mb-4
+            div.card.shadow-sm
+                img.card-img-top(src=post.image_url, alt=post.title)
+                div.card-body
+                    h3.card-title= post.title
+                    if post.description
+                        p.card-text= post.description
+                    hr
+                    p.text-muted Subido por 
+                        strong= post.username
+
+        //- en la parte derecha van a estar los comentarios
+        div.col-md-5
+            div.card.shadow-sm
+                div.card-header.bg-light
+                    h5.mb-0 Comentarios
+        
+                div.card-body
+                //- formulario para comentar, esto va a funcionar solo si inicio sesion
+                if usuarioActual
+                    form.mb-4(action=`/publicaciones/${post.id}/comentar`, method="POST")
+                        div.mb-3
+                            textarea.form-control(name="content", rows="2", placeholder="Escribe un comentario...", required)
+                        div.d-grid
+                            button.btn.btn-primary.btn-sm(type="submit") Enviar Comentario
+                else
+                    div.alert.alert-warning
+                        a(href="/login") Inicia sesión
+                        |  para dejar un comentario.
+
+                //- con esto mostramos los comentarios
+                if comments.length > 0
+                    ul.list-group.list-group-flush
+                        each comment in comments
+                            li.list-group-item.px-0
+                                strong= comment.username
+                                p.mb-0= comment.content
+                else
+                    p.text-muted.text-center Aún no hay comentarios.
