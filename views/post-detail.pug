@@ -13,6 +13,17 @@ block content
                     hr
                     p.text-muted Subido por 
                         strong= post.username
+                    div.mb-3
+                        span.badge.bg-warning.text-dark Promedio: #{promedio} ⭐
+                    
+                    if usuarioActual
+                        form(action=`/publicaciones/${post.id}/valorar`, method="POST", class="d-inline-flex gap-1 mb-3")
+                            //- botenes de valoraciones 
+                            button.btn.btn-outline-warning.btn-sm(type="submit", name="score", value="1", title="1 estrella") ⭐
+                            button.btn.btn-outline-warning.btn-sm(type="submit", name="score", value="2", title="2 estrellas") ⭐⭐
+                            button.btn.btn-outline-warning.btn-sm(type="submit", name="score", value="3", title="3 estrellas") ⭐⭐⭐
+                            button.btn.btn-outline-warning.btn-sm(type="submit", name="score", value="4", title="4 estrellas") ⭐⭐⭐⭐
+                            button.btn.btn-outline-warning.btn-sm(type="submit", name="score", value="5", title="5 estrellas") ⭐⭐⭐⭐⭐
 
         //- en la parte derecha van a estar los comentarios
         div.col-md-5
