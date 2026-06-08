@@ -19,8 +19,9 @@ block content
                         if post.description
                             p.card-text.text-muted= post.description
                     div.card-footer.bg-white
-                        small.text-muted Subido por: 
-                            strong= post.username
+                        small.text-muted Subido por:
+                            a(href=`/perfil/${post.username}`)
+                                strong= post.username
                     a.btn.btn-sm.btn-outline-primary(href=`/publicaciones/${post.id}`) Ver más    
     else
         div.alert.alert-info.text-center

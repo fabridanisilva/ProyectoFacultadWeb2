@@ -1,0 +1,46 @@
+extends layout
+
+block content
+    div.row.mb-4
+        div.col-md-8.mx-auto
+            div.card.shadow-sm.border-0.bg-light
+                div.card-body.text-center
+                    h2.display-6.text-primary @#{perfil.username}
+                    
+                    //- estadísticas del usuario
+                    div.d-flex.justify-content-center.gap-5.my-4
+                        div
+                            h4.mb-0 #{posts.length}
+                            span.text-muted Publicaciones
+                        div
+                            h4.mb-0 #{followersCount}
+                            span.text-muted Seguidores
+                        div
+                            h4.mb-0 #{followingCount}
+                            span.text-muted Siguiendo
+
+                    //- botón de seguir / dejar de seguir
+                    //- solo mostramos el botón si el usuario inició sesión y si no está mirando su propio perfil
+                    if usuarioActual && usuarioActual.username !== perfil.username
+                        form(action=`/perfil/${perfil.username}/seguir`, method="POST")
+                            if yaLoSigue
+                                //- Si ya lo sigue, el botón es rojo para "Dejar de seguir"
+                                button.btn.btn-outline-danger.px-4(type="submit") Dejar de Seguir
+                            else
+                                //- Si no lo sigue, el botón es azul para "Seguir"
+                                button.btn.btn-primary.px-4(type="submit") Seguir
+    //- mostramos las publicaciones del usuario
+    div.row
+        div.col-md-8.mx-auto
+            h5.mb-3.border-bottom.pb-2 Publicaciones
+            if posts.length > 0
+                div.row.row-cols-1.row-cols-md-3.g-3
+                    each post in posts
+                        div.col
+                            div.card.h-100.shadow-sm.border-0
+                                //- hacemos que la imagen sea clickeable para ir al detalle
+                                a(href=`/publicaciones/${post.id}`)
+                                    img.card-img-top.rounded(src=post.image_url, alt=post.title, style="object-fit: cover; height: 200px;")
+            else
+                div.alert.alert-secondary.text-center.mt-3
+                    p.mb-0 Este usuario aún no ha subido ninguna imagen.

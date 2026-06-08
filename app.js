@@ -316,3 +316,90 @@ app.post('/publicaciones/:id/valorar', async (req, res) => {
         res.status(500).send('Error al guardar la valoración.');
     }
 });
+
+
+// para poder ver el perfil de u usuario
+app.get('/perfil/:username', async (req, res) => {
+    const perfilUsername = req.params.username;
+    // vemos quién está navegando porque puede ser un alguien sin cuenta
+    const miUsuario = req.session.user ? req.session.user.username : null;
+
+    try {
+        //buscamos al usuario
+        const userResult = await pool.query('SELECT username FROM users WHERE username = $1', [perfilUsername]);
+        if (userResult.rows.length === 0) {
+            return res.status(404).send('Usuario no encontrado');
+        }
+
+        // traemos todas las publicaciones de este usuario
+        const postsResult = await pool.query('SELECT * FROM posts WHERE username = $1 ORDER BY created_at DESC', [perfilUsername]);
+
+        // vemos cuántos seguidores tiene
+        const followersResult = await pool.query('SELECT COUNT(*) FROM followers WHERE following_username = $1', [perfilUsername]);
+        
+        // vemos a cuántos sigue él
+        const followingResult = await pool.query('SELECT COUNT(*) FROM followers WHERE follower_username = $1', [perfilUsername]);
+
+        //  y ver si el usuario siguel al que estamos viendo
+        let yaLoSigue = false;
+        if (miUsuario) {
+            const checkFollow = await pool.query(
+                'SELECT * FROM followers WHERE follower_username = $1 AND following_username = $2',
+                [miUsuario, perfilUsername]
+            );
+            if (checkFollow.rows.length > 0) {
+                yaLoSigue = true; 
+            }
+        }
+
+        
+        res.render('profile', {
+            title: `Perfil de @${perfilUsername}`,
+            perfil: { username: perfilUsername },
+            posts: postsResult.rows,
+            followersCount: followersResult.rows[0].count,
+            followingCount: followingResult.rows[0].count,
+            yaLoSigue: yaLoSigue
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error al cargar el perfil.');
+    }
+});
+
+// hacemos funcionar el botón SEGUIR / DEJAR DE SEGUIR 
+app.post('/perfil/:username/seguir', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(403).send('Debes iniciar sesión para seguir usuarios.');
+    }
+
+    const miUsuario = req.session.user.username;
+    const aQuienSeguir = req.params.username;
+
+    try {
+        // verificamos si ya lo sigue
+        const checkFollow = await pool.query(
+            'SELECT * FROM followers WHERE follower_username = $1 AND following_username = $2',
+            [miUsuario, aQuienSeguir]
+        );
+
+        if (checkFollow.rows.length > 0) {
+            await pool.query(
+                'DELETE FROM followers WHERE follower_username = $1 AND following_username = $2',
+                [miUsuario, aQuienSeguir]
+            );
+        } else {
+            await pool.query(
+                'INSERT INTO followers (follower_username, following_username) VALUES ($1, $2)',
+                [miUsuario, aQuienSeguir]
+            );
+        }
+
+        res.redirect(`/perfil/${aQuienSeguir}`);
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error al procesar la acción de seguir.');
+    }
+});
