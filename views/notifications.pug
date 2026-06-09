@@ -1,0 +1,26 @@
+extends layout
+
+block content
+    div.row
+        div.col-md-8.mx-auto
+        h3.mb-4 Notificaciones
+        
+        if notifications.length > 0
+            div.list-group
+            each notif in notifications
+                //- cambiamos el color de fondo si no estaba leída
+                - var bgClass = notif.is_read ? 'bg-white' : 'bg-light border-primary'
+                
+                a.list-group-item.list-group-item-action(href=notif.post_id ? `/publicaciones/${notif.post_id}` : `/perfil/${notif.sender_username}`, class=bgClass)
+                div.d-flex.w-100.justify-content-between
+                    h6.mb-1
+                    strong @#{notif.sender_username}
+                    if notif.type === 'comment'
+                        |  comentó tu publicación.
+                    else if notif.type === 'rating'
+                        |  valoró tu publicación.
+                    else if notif.type === 'follow'
+                        |  empezó a seguirte.
+                    small.text-muted Hace un momento
+        else
+            div.alert.alert-info No tienes notificaciones nuevas.

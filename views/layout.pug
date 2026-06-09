@@ -24,6 +24,11 @@ html(lang="es")
                     //- si hay un usuario conectado, mostramos su nombre y botón de salir
                     if usuarioActual
                         li.nav-item
+                            a.nav-link(href="/notificaciones")
+                                | 🔔 
+                                if unreadNotifs > 0
+                                    span.badge.bg-danger.rounded-pill #{unreadNotifs}
+                        li.nav-item
                             a.nav-link(href="/publicaciones/nueva") Crear Publicación
                         li.nav-item
                         span.nav-link.text-warning ¡Hola, #{usuarioActual.username}!

@@ -28,6 +28,7 @@ app.use(session({
 // esto es para pasar los datos del usuario a todas las vistas Pug y que no se olvide que iniciamos secion en cada vista o pagina
 app.use((req, res, next) => {
     res.locals.usuarioActual = req.session.user;
+    
     next();
 });
 
@@ -401,5 +402,34 @@ app.post('/perfil/:username/seguir', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send('Error al procesar la acción de seguir.');
+    }
+});
+
+
+// esto abre las notificaciones
+app.get('/notificaciones', async (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+    const miUsuario = req.session.user.username;
+
+    try {
+        // traemos las notificaciones
+        const notifs = await pool.query(
+            'SELECT * FROM notifications WHERE recipient_username = $1 ORDER BY created_at DESC',
+            [miUsuario]
+        );
+
+        // las marcamos todas como leídas
+        await pool.query(
+            'UPDATE notifications SET is_read = TRUE WHERE recipient_username = $1',
+            [miUsuario]
+        );
+
+        res.render('notifications', {
+            title: 'Mis Notificaciones',
+            notifications: notifs.rows
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error al cargar notificaciones');
     }
 });
