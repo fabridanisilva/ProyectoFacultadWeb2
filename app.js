@@ -25,10 +25,22 @@ app.use(session({
     saveUninitialized: false
 }));
 
-// esto es para pasar los datos del usuario a todas las vistas Pug y que no se olvide que iniciamos secion en cada vista o pagina
-app.use((req, res, next) => {
+// esto es para pasar los datos del usuario a todas las vistas Pug y que no se olvide que iniciamos secion en cada vista o pagina, tambien mostramos las notificaciones nuevas
+app.use(async (req, res, next) => {
     res.locals.usuarioActual = req.session.user;
-    
+    res.locals.unreadNotifs = 0;
+
+    if (req.session.user) {
+        try {
+            const result = await pool.query(
+                'SELECT COUNT(*) FROM notifications WHERE recipient_username = $1 AND is_read = FALSE',
+                [req.session.user.username]
+            );
+            res.locals.unreadNotifs = result.rows[0].count;
+        } catch (err) {
+            console.error('Error al contar notificaciones:', err);
+        }
+    }
     next();
 });
 
@@ -284,6 +296,16 @@ app.post('/publicaciones/:id/comentar', async (req, res) => {
             [postId, username, content]
         );
 
+        const postResult = await pool.query('SELECT username FROM posts WHERE id = $1', [postId]);
+        const owner = postResult.rows[0].username;
+
+        // generamos la notificación
+        if (owner !== username) {
+            await pool.query(
+                'INSERT INTO notifications (recipient_username, sender_username, type, post_id) VALUES ($1, $2, $3, $4)',
+                [owner, username, 'comment', postId]
+            );
+        }
         // recargamos la misma página para ver el comentario nuevo
         res.redirect(`/publicaciones/${postId}`);
     } catch (err) {
@@ -310,6 +332,17 @@ app.post('/publicaciones/:id/valorar', async (req, res) => {
             ON CONFLICT (post_id, username) 
             DO UPDATE SET score = EXCLUDED.score
         `, [postId, username, score]);
+        
+        
+        const postResult = await pool.query('SELECT username FROM posts WHERE id = $1', [postId]);
+        const owner = postResult.rows[0].username;
+        // generamos la notificación
+        if (owner !== username) {
+            await pool.query(
+                'INSERT INTO notifications (recipient_username, sender_username, type, post_id) VALUES ($1, $2, $3, $4)',
+                [owner, username, 'Ilike', postId]
+            );
+        }
 
         res.redirect(`/publicaciones/${postId}`);
     } catch (err) {
@@ -395,6 +428,13 @@ app.post('/perfil/:username/seguir', async (req, res) => {
                 'INSERT INTO followers (follower_username, following_username) VALUES ($1, $2)',
                 [miUsuario, aQuienSeguir]
             );
+            // generamos la notificación
+            if (aQuienSeguir !== miUsuario) {
+                await pool.query(
+                    'INSERT INTO notifications (recipient_username, sender_username, type, post_id) VALUES ($1, $2, $3, $4)',
+                    [aQuienSeguir, miUsuario, 'follow', null]
+                );
+            }
         }
 
         res.redirect(`/perfil/${aQuienSeguir}`);
