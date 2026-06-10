@@ -5,9 +5,19 @@ const pool = require('./db/database');
 const bcrypt = require('bcrypt'); // esto es para encriptar
 const session = require('express-session'); // para que se mantenga la sesion
 const multer = require('multer'); //para subir y guardar fotos
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 require('dotenv').config();
 
 const app = express();
+
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 
 // configuración de pug
 app.set('view engine', 'pug');
@@ -169,17 +179,12 @@ app.get('/publicaciones/nueva', (req, res) => {
     res.render('create-post', { title: 'Nueva Publicación - Proyect' });
 });
 
-// esto es la configuración de multer para saber donde se va a guardar la imagen y copmo
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        // queremos que se guarde en la carpeta public/uploads
-        cb(null, path.join(__dirname, 'public/uploads'));
-    },
-    filename: function (req, file, cb) {
-        
-        // esto es clave porque evita que si dos usuarios suben un archivo llamado foto.jpg se sobreescriban
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + '-' + file.originalname);
+
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'proyecto_web2', 
+        allowed_formats: ['jpg', 'png', 'jpeg', 'webp']
     }
 });
 
@@ -205,10 +210,10 @@ app.post('/publicaciones/nueva', upload.single('image'), async (req, res) => {
     const username = req.session.user.username;
 
     try {
-        
+        const imageUrl = req.file.path;
         await pool.query(
-            'INSERT INTO posts (username, title, description, image_url) VALUES ($1, $2, $3, $4)',
-            [username, title, description, imageUrl]
+        'INSERT INTO posts (username, title, description, image_url) VALUES ($1, $2, $3, $4)',
+        [req.session.user.username, title, description, imageUrl]
         );
 
         console.log(`✅ Publicación creada por ${username}: ${title}`);
