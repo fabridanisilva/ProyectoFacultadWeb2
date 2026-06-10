@@ -189,9 +189,7 @@ const storage = new CloudinaryStorage({
 });
 
 const upload = multer({ storage: storage });
-//esto lo que hace es subir una foto que se va a guardar en la carpeta uploads, 
-// entonces de ahi tomamos el url y eso lo guardamos en la base de datos. 
-// Si subimos la foto directamente en la bd seria muy pesado y mala practica
+
 app.post('/publicaciones/nueva', upload.single('image'), async (req, res) => {
     // Verificamos por seguridad que el usuario tenga sesión
     if (!req.session.user) {
@@ -220,8 +218,10 @@ app.post('/publicaciones/nueva', upload.single('image'), async (req, res) => {
         res.redirect('/'); 
         
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Error interno al guardar la publicación.');
+        console.error("ERROR DETALLADO DE SUBIDA:", error);
+    
+        
+        res.status(500).send("Error exacto: " + (error.message || JSON.stringify(error)));
     }
 });
 
