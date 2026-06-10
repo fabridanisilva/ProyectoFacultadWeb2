@@ -1,4 +1,5 @@
 // app.js
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const pool = require('./db/database'); 
@@ -7,7 +8,7 @@ const session = require('express-session'); // para que se mantenga la sesion
 const multer = require('multer'); //para subir y guardar fotos
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
-require('dotenv').config();
+
 
 const app = express();
 
@@ -216,6 +217,11 @@ app.post('/publicaciones/nueva', upload.single('image'), async (req, res) => {
     const username = req.session.user.username;
 
     try {
+
+        if (!req.file) {
+            return res.status(400).send("La imagen no llegó al servidor. Revisá el name='imagen' o las claves de Cloudinary.");
+        }
+
         const imageUrl = req.file.path;
         await pool.query(
         'INSERT INTO posts (username, title, description, image_url) VALUES ($1, $2, $3, $4)',
