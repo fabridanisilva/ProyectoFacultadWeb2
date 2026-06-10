@@ -35,7 +35,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true, // Obligatorio para el HTTPS de Render
+       // secure: true, // Obligatorio para el HTTPS de Render
         maxAge: 1000 * 60 * 60 * 24 // 1 día
     }
 }));
@@ -203,7 +203,7 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage: storage });
 
-app.post('/publicaciones/nueva', upload.single('image'), async (req, res) => {
+app.post('/publicaciones/nueva', upload.single('imagen'), async (req, res) => {
     // Verificamos por seguridad que el usuario tenga sesión
     if (!req.session.user) {
         return res.status(403).send('No autorizado');
@@ -217,25 +217,19 @@ app.post('/publicaciones/nueva', upload.single('image'), async (req, res) => {
     }
 
     // armamos la ruta relativa que vamos a guardar en postgreSQL
-    const imageUrl = '/uploads/' + req.file.filename;
+    const imageUrl = req.file.path;
     const username = req.session.user.username;
 
     try {
-
-        if (!req.file) {
-            return res.status(400).send("La imagen no llegó al servidor. Revisá el name='imagen' o las claves de Cloudinary.");
-        }
-
-        const imageUrl = req.file.path;
         await pool.query(
-        'INSERT INTO posts (username, title, description, image_url) VALUES ($1, $2, $3, $4)',
-        [req.session.user.username, title, description, imageUrl]
+            'INSERT INTO posts (username, title, description, image_url) VALUES ($1, $2, $3, $4)',
+            [username, title, description, imageUrl]
         );
 
         console.log(`✅ Publicación creada por ${username}: ${title}`);
         res.redirect('/'); 
         
-    } catch (err) {
+    } catch (error) {
         console.error("ERROR DETALLADO DE SUBIDA:", error);
     
         
