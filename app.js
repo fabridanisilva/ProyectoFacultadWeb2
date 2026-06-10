@@ -30,7 +30,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // configuración de la sesión
 app.use(session({
-    secret: 'mi_secreto_super_seguro', 
+    secret: process.env.SESSION_SECRET || 'mi_secreto_super_seguro', 
     resave: false,
     saveUninitialized: false
 }));
