@@ -73,6 +73,14 @@ app.get('/', async (req, res) => {
     }
 });
 
+// esto es para detectar un error
+app.use((err, req, res, next) => {
+    
+    console.error("🚨 ERROR GLOBAL DETECTADO:", err.message, err.stack);
+    
+    
+    res.status(500).send("El error exacto que frena todo es: " + err.message);
+});
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
