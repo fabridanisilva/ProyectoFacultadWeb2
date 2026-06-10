@@ -23,7 +23,7 @@ cloudinary.config({
 // configuración de pug
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
-
+app.set('trust proxy', 1);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -31,9 +31,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // configuración de la sesión
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'mi_secreto_super_seguro', 
+    secret: process.env.SESSION_SECRET, 
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: {
+        secure: true, // Obligatorio para el HTTPS de Render
+        maxAge: 1000 * 60 * 60 * 24 // 1 día
+    }
 }));
 
 // esto es para pasar los datos del usuario a todas las vistas Pug y que no se olvide que iniciamos secion en cada vista o pagina, tambien mostramos las notificaciones nuevas
